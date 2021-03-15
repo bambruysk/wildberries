@@ -2,9 +2,11 @@ import logging
 import csv
 import collections
 from re import search
+import json
 
 import requests
 import bs4
+
 
 
 
@@ -26,6 +28,47 @@ ParseResult =  collections.namedtuple(
 )
 
 HEADER = ("Бренд", "Товар","Ссылка" ,"Цена")
+
+
+
+class PageContent():
+    def __init__(self,url):
+        self.session = requests.Session()
+        self.session.headers = {
+            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.101 Yowser/2.5 Safari/537.36",
+            'Acccept-Language' :'ru'
+        }
+        self.url = url
+        self._page = self.session.get(self.url)
+        self._page.raise_for_status()
+
+    def page(self):
+        return self._page
+    
+
+
+class PageData():
+    def __init__(self, content : PageContent):
+        self.content = content
+        soup = bs4.BeautifulSoup(content.text, "lxml")
+        ## need find scripts with json 
+        ## for testing load json from file
+        
+        with open("test.json") as jf:
+            test_json = jf.read()
+        self._json_data = json.loads(test_json)
+
+    def json_data(self):
+        return self._json_data
+
+
+
+
+class ProductPage():
+    def __init__(self,url):
+        self.page_content =  PageContent(url)
+        self.
+
 
 class GoodParcer():
     def __init__(self, url):

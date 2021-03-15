@@ -48,9 +48,9 @@ class PageContent():
 
 
 class PageData():
-    def __init__(self, content : PageContent):
+    def __init__(self, content ):
         self.content = content
-        soup = bs4.BeautifulSoup(content.text, "lxml")
+        soup = bs4.BeautifulSoup(content.page().text, "lxml")
         ## need find scripts with json 
         ## for testing load json from file
         
@@ -67,7 +67,12 @@ class PageData():
 class ProductPage():
     def __init__(self,url):
         self.page_content =  PageContent(url)
-        self.
+        self.page_data = PageData(self.page_content)
+        self.product_card = self.page_data.json_data()["productCard"]
+        self.name =  self.product_card["goodsName"]
+        self.nomenclatures = self.product_card["nomenclatures"]
+        self.orderCount = sum([params["ordersCount"] for  params  in self.nomenclatures.values() ])
+
 
 
 class GoodParcer():
@@ -203,6 +208,6 @@ class CatalogParcer():
 # client = CatalogParcer("https://www.wildberries.ru/catalog/zhenshchinam/odezhda/odezhda-dlya-doma?xsubject=162")
 # client.run()
 # client.save_google()
-
-client = GoodParcer("https://www.wildberries.ru/catalog/14816271/detail.aspx")
-
+if __name__ == "__main__":
+    page = ProductPage("https://www.wildberries.ru/catalog/14816271/detail.aspx")
+    logger.info(page.orderCount)

@@ -11,10 +11,7 @@ scopes = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-credentials = Credentials.from_service_account_file(
-    r'C:\Users\Aleksandr\.gkeys\mgmoose.json',
-    scopes=scopes
-)
+
 
 
 
@@ -22,6 +19,10 @@ credentials = Credentials.from_service_account_file(
 
 class GoogleTable():
     def __init__(self,docname="DefaultTable", headers=None):
+        credentials = Credentials.from_service_account_file(
+            r'C:\Users\Aleksandr\.gkeys\mgmoose.json',
+            scopes=scopes
+        )
         self.docname = docname
         self.gc = gspread.authorize(credentials)
 

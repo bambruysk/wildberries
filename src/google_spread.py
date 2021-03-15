@@ -21,27 +21,7 @@ credentials = Credentials.from_service_account_file(
 
 
 
-
-def get_or_create_spreadsheet(name):
-    try:
-        sh = gc.open(name)
-    except SpreadsheetNotFound:
-        sh = gc.create(name)
-    return sh
-
-
-GODS_SHEET = "Wildberries.Pijamas.Ritual"
-
-
-def check_gspread_connetctions():
-    sh = get_or_create_spreadsheet(GODS_SHEET)
-    print(sh)
-
-
-
-
-### generate random beacons
-
+GOODS_SHEET = "Wildberries.Pijamas"
 
 class GoogleTable():
     def __init__(self,docname="DefaultTable", headers=None):

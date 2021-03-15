@@ -21,10 +21,7 @@ credentials = Credentials.from_service_account_file(
 
 
 
-<<<<<<< HEAD
-=======
-GOODS_SHEET = "Wildberries.Pijamas"
->>>>>>> 75e5e5b07bc452581f60515da52ede94294b9bba
+
 
 class GoogleTable():
     def __init__(self,docname="DefaultTable", headers=None):
@@ -38,8 +35,7 @@ class GoogleTable():
         self.sh.share('bambruysk@gmail.com', perm_type='user', role='writer')
         self.ws = self.sh.sheet1
         self.ws.clear()
-        for i,h in enumerate(headers):
-            self.ws.update_cell(1, i+1, h)
+        self.write_header(headers)
         self.last_pos = 2 if headers else 1
 
     def clean(self):
@@ -49,6 +45,8 @@ class GoogleTable():
         self.ws.delete_rows(2, self.last_pos)
 
     def write_header(self,header):
+        if headers is None:
+            return
         self.ws.delete_row(1)
         for i,h in enumerate(headers):
             self.ws.update_cell(1, i+1, h)
@@ -67,9 +65,5 @@ class GoogleTable():
     def share(self, email:str):
         self.sh.share(email, perm_type='user', role='writer')
         
-
-
-
-## test
 
 

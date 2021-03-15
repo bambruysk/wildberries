@@ -1,6 +1,3 @@
-import logging
-import random
-from datetime import time
 
 import gspread
 from gspread import SpreadsheetNotFound
@@ -45,10 +42,10 @@ class GoogleTable():
         self.ws.delete_rows(2, self.last_pos)
 
     def write_header(self,header):
-        if headers is None:
+        if header is None:
             return
         self.ws.delete_row(1)
-        for i,h in enumerate(headers):
+        for i,h in enumerate(header):
             self.ws.update_cell(1, i+1, h)
             self.last_pos = 2
 

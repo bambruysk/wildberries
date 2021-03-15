@@ -1,13 +1,14 @@
+import logging 
+import csv
+import collections
+from re import search
+
 import requests
 import bs4
 
-from re import search
 
-import  csv
 
-import collections
 
-import logging 
 
 from  google_spread import GoogleTable
 
@@ -153,8 +154,7 @@ class CatalogParcer():
             self.parse_page(page)
             if self.parsed_items == 0:
                 break
-            else:
-                self.parsed_items = 0
+            self.parsed_items = 0
         
 
 # client = CatalogParcer("https://www.wildberries.ru/catalog/zhenshchinam/odezhda/odezhda-dlya-doma?xsubject=162")

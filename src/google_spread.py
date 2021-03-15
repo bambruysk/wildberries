@@ -21,6 +21,10 @@ credentials = Credentials.from_service_account_file(
 
 
 
+<<<<<<< HEAD
+=======
+GOODS_SHEET = "Wildberries.Pijamas"
+>>>>>>> 75e5e5b07bc452581f60515da52ede94294b9bba
 
 class GoogleTable():
     def __init__(self,docname="DefaultTable", headers=None):

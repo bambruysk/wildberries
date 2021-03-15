@@ -48,9 +48,15 @@ class PageContent():
 
 
 class PageData():
+<<<<<<< HEAD
     def __init__(self, content ):
         self.content = content
         soup = bs4.BeautifulSoup(content.page().text, "lxml")
+=======
+    def __init__(self, content : PageContent):
+        self.content = content
+        soup = bs4.BeautifulSoup(content.text, "lxml")
+>>>>>>> 5ca893e16eb2beca8578e5b68b7e92c9f24062f9
         ## need find scripts with json 
         ## for testing load json from file
         
@@ -64,6 +70,7 @@ class PageData():
 
 
 
+<<<<<<< HEAD
 class ProductPage():
     def __init__(self,url):
         self.page_content =  PageContent(url)
@@ -73,6 +80,16 @@ class ProductPage():
         self.nomenclatures = self.product_card["nomenclatures"]
         self.orderCount = sum([params["ordersCount"] for  params  in self.nomenclatures.values() ])
 
+=======
+
+
+
+
+class ProductPage():
+    def __init__(self,url):
+        self.page_content =  PageContent(url)
+        self. 
+>>>>>>> 5ca893e16eb2beca8578e5b68b7e92c9f24062f9
 
 
 class GoodParcer():

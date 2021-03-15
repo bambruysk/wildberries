@@ -21,7 +21,6 @@ credentials = Credentials.from_service_account_file(
 
 
 
-GOODS_SHEET = "Wildberries.Pijamas"
 
 class GoogleTable():
     def __init__(self,docname="DefaultTable", headers=None):
@@ -68,7 +67,5 @@ class GoogleTable():
 
 
 ## test
-if __name__ == 'main':
-    table = GoodsTable(headers=("a","b","c"))
-    table.add_row("cde")
+
 

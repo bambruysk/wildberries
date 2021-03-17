@@ -16,7 +16,7 @@ logger = logging.getLogger('wb')
 ParseResult = collections.namedtuple(
     'ParsedResult',
     (
-        'article'
+        'article',
         'brand_name',
         'goods_name',
         'url',
@@ -27,10 +27,9 @@ ParseResult = collections.namedtuple(
 
 SESSION_HEADERS = {
             'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.101 Yowser/2.5 Safari/537.36",
-            'Acccept-Language': 'ru'
-        }
+            'Acccept-Language': 'ru'}
 
-HEADER = ("Артикул","Бренд", "Товар", "Ссылка", "Цена", "Продано")
+HEADER = ("Артикул", "Бренд", "Товар", "Ссылка", "Цена", "Продано")
 
 
 class GoodsPool():
@@ -40,9 +39,11 @@ class GoodsPool():
 
 pool = GoodsPool()
 
+
 class Url():
-    def __init__(self,article):
+    def __init__(self, article):
         self.url = f"https://www.wildberries.ru/catalog/{article}/detail.aspx"
+
     def __str__(self):
         return self.url
 
@@ -112,14 +113,13 @@ class ProductPage():
     def __init__(self, article):
         self.article = article
         self.url = Url(article)
-        self.page_content = PageContent(url)
+        self.page_content = PageContent(self.url)
         self.page_data = PageData(self.page_content)
         self.product_card = self.page_data.json_data()["productCard"]
         self.name = self.product_card["goodsName"]
         self.brand_name = self.product_card["brandName"]
         self.nomenclatures = self.product_card["nomenclatures"]
-        self.orderCount = sum([params["ordersCount"]
-                               for params in self.nomenclatures.values()])
+        self.orderCount = self.nomenclatures[self.article]["ordersCount"]
 
     def parse_articuls(self):
         articulus = self.nomenclatures.keys()
@@ -132,13 +132,12 @@ class ProductPage():
                     price=self.nomenclatures[ar]["sizes"][0]["price"],
                     orderCount=self.nomenclatures[ar]["ordersCount"]
                 )
-        
 
 
 class GoodParcer():
     def __init__(self, url):
         self.session = requests.Session()
-        self.session.headers = SESSION_HEADERS}
+        self.session.headers = SESSION_HEADERS
         self.url = url
         self.res = {}
 
@@ -180,6 +179,8 @@ class CatalogParcer():
         self.result = []
         self.parsed_items = 0
 
+
+
     def load_page(self,   page=1):
         res = self.session.get(self.url+f"&page={page}")
         res.raise_for_status()
@@ -200,32 +201,42 @@ class CatalogParcer():
             for row in self.result:
                 writer.writerow(cell for cell in row)
 
-    def save_google(self, name="Wildberries.Pijamas"):
+    def save_google(self, name="Wildberries.Pijamas.17.03"):
         table = GoogleTable(docname=name, headers=HEADER)
         table.add_rows(self.result)
+
+    def extract_article_from_url(self, url: str):
+        # /catalog/18114335/detail.aspx?targetUrl=GP format
+        return url.split("/")[2]
 
     def parse_block(self, block):
         logger.info("="*80)
 
         url_block = block.select_one(
             'a.ref_goods_n_p.j-open-full-product-card')
+        #get url 
+        href=url_block.get('href')
+        article=self.extract_article_from_url(href)
+        logger.info(article)
 
-        url = ("https://www.wildberries.ru" +
-               url_block.get('href')).replace("?targetUrl=GP", "")
+        url=("https://www.wildberries.ru" + href).replace("?targetUrl=GP", "")
+
         logger.info(url)
+        #get brand
+        brand_block=block.select_one('div.dtlist-inner-brand-name')
 
-        brand_block = block.select_one('div.dtlist-inner-brand-name')
+        goods_block=brand_block.select_one('span.goods-name')
+        goods=goods_block.text
+        
 
-        goods_block = brand_block.select_one('span.goods-name')
-        goods = goods_block.text
 
         logger.info("Товар: \t %s", goods_block.text)
 
-        brand = brand_block.select_one(
+        brand=brand_block.select_one(
             'strong.brand-name').text.replace('/', "").strip()
         logger.info("Бренд: \t %s", brand)
 
-        price_block = block.select_one(
+        price_block=block.select_one(
             'div.j-cataloger-price').select_one('ins.lower-price')
         if not price_block:
             logger.error("Not a price block")
@@ -235,31 +246,36 @@ class CatalogParcer():
         def price_to_int(price: str) -> int:
             return int("".join((c for c in price if c.isdigit())))
 
-        price = price_to_int(price_block.text)
+        price=price_to_int(price_block.text)
+
+        #ProductPage
+        product_page = ProductPage(article)
+
 
         self.result.append(
             ParseResult(
+                article=article,
                 brand_name=brand,
                 goods_name=goods,
                 url=url,
-                price=price
+                price=price,
+                orderCount=product_page.orderCount
             )
         )
         return True
 
     def run(self):
         for page_num in range(1000):
-            page = self.load_page(page_num)
+            page=self.load_page(page_num)
             self.parse_page(page)
             if self.parsed_items == 0:
                 break
-            self.parsed_items = 0
+            self.parsed_items=0
 
 
-# client = CatalogParcer("https://www.wildberries.ru/catalog/zhenshchinam/odezhda/odezhda-dlya-doma?xsubject=162")
-# client.run()
-# client.save_google()
 if __name__ == "__main__":
-    page = ProductPage(
-        "https://www.wildberries.ru/catalog/14816271/detail.aspx")
+    page=ProductPage("14816271")
     logger.info(page.orderCount)
+    client = CatalogParcer("https://www.wildberries.ru/catalog/zhenshchinam/odezhda/odezhda-dlya-doma?xsubject=162")
+    client.run()
+    client.save_google()

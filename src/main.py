@@ -116,6 +116,7 @@ class ProductPage():
         self.page_content = PageContent(self.url)
         self.page_data = PageData(self.page_content)
         self.product_card = self.page_data.json_data()["productCard"]
+        self.supplierInfo = self.page_data.json_data()["suppliersInfo"][self.article]
         self.name = self.product_card["goodsName"]
         self.brand_name = self.product_card["brandName"]
         self.nomenclatures = self.product_card["nomenclatures"]

@@ -7,6 +7,8 @@ import json
 import requests
 import bs4
 
+from database import ProductModel, OrderCountModel
+
 
 from google_spread import GoogleTable
 
@@ -21,7 +23,8 @@ ParseResult = collections.namedtuple(
         'goods_name',
         'url',
         'price',
-        'orderCount'
+        'orderCount',
+        'supplier'
     )
 )
 
@@ -29,7 +32,7 @@ SESSION_HEADERS = {
             'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.2.101 Yowser/2.5 Safari/537.36",
             'Acccept-Language': 'ru'}
 
-HEADER = ("Артикул", "Бренд", "Товар", "Ссылка", "Цена", "Продано")
+HEADER = ("Артикул", "Бренд", "Товар", "Ссылка", "Цена", "Продано","Поставщик")
 
 
 class GoodsPool():
@@ -58,8 +61,8 @@ class PageContent():
 
         # debug
         # save page as html
-        with open("dump.html", "w", encoding='utf-16') as f:
-            f.write(self._page.text)
+        # with open("dump.html", "w", encoding='utf-16') as f:
+        #     f.write(self._page.text)
 
     def page(self):
         return self._page
@@ -117,10 +120,26 @@ class ProductPage():
         self.page_data = PageData(self.page_content)
         self.product_card = self.page_data.json_data()["productCard"]
         self.supplierInfo = self.page_data.json_data()["suppliersInfo"][self.article]
+        self.supplier = self.supplierInfo["supplierName"]
         self.name = self.product_card["goodsName"]
         self.brand_name = self.product_card["brandName"]
         self.nomenclatures = self.product_card["nomenclatures"]
         self.orderCount = self.nomenclatures[self.article]["ordersCount"]
+        """                "priceDetails": {
+                    "basicSale": 60,
+                    "basicPrice": 868,
+                    "promoSale": 10,
+                    "promoPrice": 781,
+                    "clientSale": 5,
+                    "clientPrice": 742
+                },
+        """
+        self.prices=self.nomenclatures[self.article]["priceDetails"]
+        self.basic_price=self.prices["basicPrice"]
+        self.promo_price=self.prices["promoPrice"]
+        self.client_price=self.prices["clienPrice"]
+        self.price = self.basic_price            
+
 
     def parse_articuls(self):
         articulus = self.nomenclatures.keys()
@@ -133,6 +152,16 @@ class ProductPage():
                     price=self.nomenclatures[ar]["sizes"][0]["price"],
                     orderCount=self.nomenclatures[ar]["ordersCount"]
                 )
+    def save_to_db(self):
+        product, is_created = ProductModel.get_or_create(
+            article=self.article,
+            brand=self.brand_name,
+            supplier=self.supplier,
+            price=self.price
+            goods_name=self.name
+            )
+        order_count = OrderCountModel.create()
+          
 
 
 class GoodParcer():
@@ -260,7 +289,8 @@ class CatalogParcer():
                 goods_name=goods,
                 url=url,
                 price=price,
-                orderCount=product_page.orderCount
+                orderCount=product_page.orderCount,
+                supplier=product_page.supplier
             )
         )
         return True
@@ -279,4 +309,4 @@ if __name__ == "__main__":
     logger.info(page.orderCount)
     client = CatalogParcer("https://www.wildberries.ru/catalog/zhenshchinam/odezhda/odezhda-dlya-doma?xsubject=162")
     client.run()
-    client.save_google()
+    client.save_google("Wildberries.Pijamas.18.03")
